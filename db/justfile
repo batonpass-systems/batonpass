@@ -1,0 +1,28 @@
+set shell := ["bash", "-c"]
+set dotenv-load := false
+
+default:
+    @just --list
+
+create-users:
+    sudo -u postgres psql --file=./00-create-users.sql
+
+create-databases:
+    sudo -u postgres psql --file=./01-create-databases.sql
+
+alter-grants:
+    sudo -u postgres psql --dbname="test" --file=./02-alter-grants.sql
+    sudo -u postgres psql --dbname="batonpass" --file=./02-alter-grants.sql
+
+apply-schema:
+    sudo -u postgres psql --dbname="batonpass" --file=./03-schema.sql
+
+truncate:
+    sudo -u postgres psql --dbname="batonpass" --file=./04-truncate.sql
+
+drop:
+    sudo -u postgres psql --dbname="batonpass" --file=./05-drop-tables.sql
+
+# for testing only, use testing password `batonpass`
+psql:
+    psql -h localhost -U batonpass -d batonpass -W
