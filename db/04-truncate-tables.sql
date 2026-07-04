@@ -1,2 +1,2 @@
 -- for testing only
-truncate audit_log, orgs, users;
+TRUNCATE audit_log, orgs, users;

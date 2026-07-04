@@ -1,3 +1,3 @@
 -- for testing only
-create user batonpass password 'batonpass';
-create role batonpass_root with superuser createdb createrole login encrypted password 'batonpass_root';
+CREATE USER batonpass PASSWORD 'batonpass';
+CREATE ROLE batonpass_root WITH SUPERUSER CREATEDB CREATEROLE LOGIN ENCRYPTED PASSWORD 'batonpass_root';

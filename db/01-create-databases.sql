@@ -1,6 +1,6 @@
 -- for testing only
-create database test;
-grant all privileges on database test to batonpass;
-create database batonpass;
-grant all privileges on database batonpass to batonpass;
+CREATE DATABASE test;
+GRANT ALL PRIVILEGES ON DATABASE test TO batonpass;
+CREATE DATABASE batonpass;
+GRANT ALL PRIVILEGES ON DATABASE batonpass TO batonpass;
 
