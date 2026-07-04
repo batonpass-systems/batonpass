@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
     ctime BIGINT NOT NULL DEFAULT extract(epoch from now())::bigint
 );
 
-CREATE TABLE IF NOT EXISTS org (
+CREATE TABLE IF NOT EXISTS orgs (
     id TEXT UNIQUE NOT NULL DEFAULT gen_random_uuid()::text,
     insert_order BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT UNIQUE NOT NULL CHECK (name != ''),
@@ -32,8 +32,8 @@ CREATE TABLE IF NOT EXISTS org (
     -- `status` == 2 is constant `Status::ACTIVE`.
     -- `status` == 3 is constant `Status::INACTIVE`.
     status INTEGER NOT NULL CHECK (status > 0 AND status < 4)
-    -- FOREIGN KEY (owner) REFERENCES "user"(id) added below via ALTER TABLE,
-    -- since "user" references org and must be created after org.
+    -- FOREIGN KEY (owner) REFERENCES users(id) added below via ALTER TABLE,
+    -- since users references orgs and must be created after orgs.
 );
 
 CREATE OR REPLACE FUNCTION update_org_metadata() RETURNS TRIGGER AS $$
@@ -44,20 +44,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER update_org_metadata BEFORE UPDATE ON org
+CREATE OR REPLACE TRIGGER update_org_metadata BEFORE UPDATE ON orgs
 FOR EACH ROW
 EXECUTE FUNCTION update_org_metadata();
 
 CREATE OR REPLACE FUNCTION org_audit_update_owner() RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO audit_log (audit_table, audit_id, audit_column, old_mtime, new_mtime, old_signature, new_signature, details)
-    VALUES ('org', OLD.id, 'owner', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
+    VALUES ('orgs', OLD.id, 'owner', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
             jsonb_build_object('old', OLD.owner, 'new', NEW.owner)::text);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER org_audit_update_owner AFTER UPDATE OF owner ON org
+CREATE OR REPLACE TRIGGER org_audit_update_owner AFTER UPDATE OF owner ON orgs
 FOR EACH ROW
 WHEN (OLD.owner IS DISTINCT FROM NEW.owner)
 EXECUTE FUNCTION org_audit_update_owner();
@@ -65,18 +65,18 @@ EXECUTE FUNCTION org_audit_update_owner();
 CREATE OR REPLACE FUNCTION org_audit_update_status() RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO audit_log (audit_table, audit_id, audit_column, old_mtime, new_mtime, old_signature, new_signature, details)
-    VALUES ('org', OLD.id, 'status', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
+    VALUES ('orgs', OLD.id, 'status', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
             jsonb_build_object('old', OLD.status, 'new', NEW.status)::text);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER org_audit_update_status AFTER UPDATE OF status ON org
+CREATE OR REPLACE TRIGGER org_audit_update_status AFTER UPDATE OF status ON orgs
 FOR EACH ROW
 WHEN (OLD.status IS DISTINCT FROM NEW.status)
 EXECUTE FUNCTION org_audit_update_status();
 
-CREATE TABLE IF NOT EXISTS "user" (
+CREATE TABLE IF NOT EXISTS users (
     ed25519_public TEXT NOT NULL CHECK (ed25519_public != ''),
     ed25519_public_digest TEXT NOT NULL CHECK (ed25519_public_digest != ''),
     display_name TEXT NOT NULL CHECK (display_name != ''),
@@ -103,12 +103,12 @@ CREATE TABLE IF NOT EXISTS "user" (
     -- `status` == 2 is constant `Status::ACTIVE`.
     -- `status` == 3 is constant `Status::INACTIVE`.
     status INTEGER NOT NULL CHECK (status > 0 AND status < 4),
-    FOREIGN KEY (org) REFERENCES org(id)
+    FOREIGN KEY (org) REFERENCES orgs(id)
       ON DELETE CASCADE
       DEFERRABLE INITIALLY DEFERRED
 );
-CREATE UNIQUE INDEX IF NOT EXISTS user_email_digest_org ON "user" (email_digest, org);
-CREATE UNIQUE INDEX IF NOT EXISTS user_ed25519_public_digest_org ON "user" (ed25519_public_digest, org);
+CREATE UNIQUE INDEX IF NOT EXISTS user_email_digest_org ON users (email_digest, org);
+CREATE UNIQUE INDEX IF NOT EXISTS user_ed25519_public_digest_org ON users (ed25519_public_digest, org);
 
 CREATE OR REPLACE FUNCTION update_user_metadata() RETURNS TRIGGER AS $$
 BEGIN
@@ -118,20 +118,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER update_user_metadata BEFORE UPDATE ON "user"
+CREATE OR REPLACE TRIGGER update_user_metadata BEFORE UPDATE ON users
 FOR EACH ROW
 EXECUTE FUNCTION update_user_metadata();
 
 CREATE OR REPLACE FUNCTION user_audit_update_digest() RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO audit_log (audit_table, audit_id, audit_column, old_mtime, new_mtime, old_signature, new_signature, details)
-    VALUES ('user', OLD.id, 'ed25519_public_digest', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
+    VALUES ('users', OLD.id, 'ed25519_public_digest', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
             jsonb_build_object('old', OLD.ed25519_public_digest, 'new', NEW.ed25519_public_digest)::text);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER user_audit_update_digest AFTER UPDATE OF ed25519_public_digest ON "user"
+CREATE OR REPLACE TRIGGER user_audit_update_digest AFTER UPDATE OF ed25519_public_digest ON users
 FOR EACH ROW
 WHEN (OLD.ed25519_public_digest IS DISTINCT FROM NEW.ed25519_public_digest)
 EXECUTE FUNCTION user_audit_update_digest();
@@ -139,13 +139,13 @@ EXECUTE FUNCTION user_audit_update_digest();
 CREATE OR REPLACE FUNCTION user_audit_update_display_name() RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO audit_log (audit_table, audit_id, audit_column, old_mtime, new_mtime, old_signature, new_signature, details)
-    VALUES ('user', OLD.id, 'display_name_digest', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
+    VALUES ('users', OLD.id, 'display_name_digest', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
             jsonb_build_object('old', OLD.display_name_digest, 'new', NEW.display_name_digest)::text);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER user_audit_update_display_name AFTER UPDATE OF display_name_digest ON "user"
+CREATE OR REPLACE TRIGGER user_audit_update_display_name AFTER UPDATE OF display_name_digest ON users
 FOR EACH ROW
 WHEN (OLD.display_name_digest IS DISTINCT FROM NEW.display_name_digest)
 EXECUTE FUNCTION user_audit_update_display_name();
@@ -153,13 +153,13 @@ EXECUTE FUNCTION user_audit_update_display_name();
 CREATE OR REPLACE FUNCTION user_audit_update_encryption_key_version() RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO audit_log (audit_table, audit_id, audit_column, old_mtime, new_mtime, old_signature, new_signature, details)
-    VALUES ('user', OLD.id, 'encryption_key_version', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
+    VALUES ('users', OLD.id, 'encryption_key_version', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
             jsonb_build_object('old', OLD.encryption_key_version, 'new', NEW.encryption_key_version)::text);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER user_audit_update_encryption_key_version AFTER UPDATE OF encryption_key_version ON "user"
+CREATE OR REPLACE TRIGGER user_audit_update_encryption_key_version AFTER UPDATE OF encryption_key_version ON users
 FOR EACH ROW
 WHEN (OLD.encryption_key_version IS DISTINCT FROM NEW.encryption_key_version)
 EXECUTE FUNCTION user_audit_update_encryption_key_version();
@@ -167,13 +167,13 @@ EXECUTE FUNCTION user_audit_update_encryption_key_version();
 CREATE OR REPLACE FUNCTION user_audit_update_password() RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO audit_log (audit_table, audit_id, audit_column, old_mtime, new_mtime, old_signature, new_signature, details)
-    VALUES ('user', OLD.id, 'password', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
+    VALUES ('users', OLD.id, 'password', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
             jsonb_build_object('old', OLD.password, 'new', NEW.password)::text);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER user_audit_update_password AFTER UPDATE OF password ON "user"
+CREATE OR REPLACE TRIGGER user_audit_update_password AFTER UPDATE OF password ON users
 FOR EACH ROW
 WHEN (OLD.password IS DISTINCT FROM NEW.password)
 EXECUTE FUNCTION user_audit_update_password();
@@ -181,18 +181,18 @@ EXECUTE FUNCTION user_audit_update_password();
 CREATE OR REPLACE FUNCTION user_audit_update_status() RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO audit_log (audit_table, audit_id, audit_column, old_mtime, new_mtime, old_signature, new_signature, details)
-    VALUES ('user', OLD.id, 'status', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
+    VALUES ('users', OLD.id, 'status', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
             jsonb_build_object('old', OLD.status, 'new', NEW.status)::text);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER user_audit_update_status AFTER UPDATE OF status ON "user"
+CREATE OR REPLACE TRIGGER user_audit_update_status AFTER UPDATE OF status ON users
 FOR EACH ROW
 WHEN (OLD.status IS DISTINCT FROM NEW.status)
 EXECUTE FUNCTION user_audit_update_status();
 
-ALTER TABLE org
-  ADD CONSTRAINT org_owner_fkey FOREIGN KEY (owner) REFERENCES "user"(id)
+ALTER TABLE orgs
+  ADD CONSTRAINT org_owner_fkey FOREIGN KEY (owner) REFERENCES users(id)
     ON DELETE CASCADE
     DEFERRABLE INITIALLY DEFERRED;
