@@ -1,0 +1,10 @@
+[package]
+name = "batonpass"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rand = "0.9"
+thiserror = "2.0"
+sqlx = { version = "0.8", features = [ "migrate", "postgres", "runtime-tokio", "tls-native-tls", "uuid" ] }
+tokio = { version = "1", features = [ "full" ] }
