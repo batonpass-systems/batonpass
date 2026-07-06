@@ -28,27 +28,27 @@ impl State {
     /// `unit` provides a State instance for unit testing and development.
     pub async fn unit() -> Result<State, Error> {
         let pool_options = PgPoolOptions::new()
-            .acquire_timeout(Duration::from_millis(100))
-            .idle_timeout(Duration::from_millis(1000))
+            .acquire_timeout(Duration::from_secs(1))
+            .idle_timeout(Duration::from_secs(1))
             .max_connections(100)
             .max_lifetime(None);
 
         let pg_env_var_url = env::var("POSTGRES_URL").expect("POSTGRES_URL env var");
 
         let master = pool_options.clone().connect(&pg_env_var_url).await?;
-        Self::for_sqlx_test(master).await
+        Ok(Self::for_sqlx_test(master))
     }
 
     /// `for_sqlx_test` is to be used with the `sqlx::PgPool`
     /// as set up with the #[`sqlx::test`] test header.
-    pub async fn for_sqlx_test(pool: PgPool) -> Result<State, Error> {
+    pub fn for_sqlx_test(pool: PgPool) -> State {
         // Get a pool to the postgres master.
         let master = pool;
 
         // In the `unit` env, the replicas are just the master.
         let replicas = vec![master.clone()];
 
-        Ok(Self { master, replicas })
+        Self { master, replicas }
     }
 
     /// `random_replica` returns a pool for a random postgres replica.

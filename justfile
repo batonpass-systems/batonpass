@@ -31,7 +31,10 @@ debug:
     env RUST_LOG=info cargo run
 
 test:
-    env RUST_LOG=warn cargo test
+    env RUST_LOG=info cargo test
+
+test-verbose:
+    env RUST_LOG=info cargo test -- --nocapture
 
 update:
     cargo update
