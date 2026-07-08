@@ -36,6 +36,12 @@ pub fn kdf_verify(s: &str, hashed: &str) -> Result<bool, KdfError> {
     }
 }
 
+/// `random_password` produces the argon2 hash of a randomly generated password.
+#[tracing::instrument]
+pub fn random_password() -> Result<String, KdfError> {
+    kdf(&super::rand_hex())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -49,5 +55,12 @@ mod tests {
         assert!(kdf_verify(pw, &hashed).unwrap());
         let bad = "not my password";
         assert!(!kdf_verify(bad, &hashed).unwrap());
+    }
+
+    #[test_log::test]
+    fn random_password_test() {
+        let hashed = random_password().unwrap();
+        let hashed2 = random_password().unwrap();
+        assert_ne!(hashed, hashed2); // different random password + salt
     }
 }
