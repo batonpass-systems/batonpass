@@ -1,20 +1,20 @@
 //! # Crypt
 //!
-//! `crypt` provides crypto-related functionality including AES-GCM and kdf.
+//! `crypt` provides crypto-related functionality including AES-GCM and password hashing.
 #![allow(dead_code, unused_imports)]
 use hex;
 use rand::RngExt;
 use sha2::{Digest, Sha256};
 
 pub mod cipher;
-pub mod kdf;
 pub mod key;
 pub mod nonce;
+pub mod password;
 pub mod version_key_map;
 
 pub use cipher::{AesError, decrypt, encrypt};
-pub use kdf::{KdfError, kdf, kdf_verify};
 pub use key::{KEY_LENGTH, Key, KeyDecodeError};
+pub use password::{HashedPassword, PASSWORD_HASH_LEN, PasswordError};
 pub use nonce::{NONCE_LENGTH, Nonce};
 pub use version_key_map::VersionKeyMap;
 
