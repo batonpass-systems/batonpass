@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 );
 
 CREATE TABLE IF NOT EXISTS orgs (
-    id TEXT UNIQUE NOT NULL DEFAULT gen_random_uuid()::text,
+    id TEXT UNIQUE NOT NULL,
     insert_order BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT UNIQUE NOT NULL CHECK (name != ''),
     -- see FK constraint in ALTER at end
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS orgs (
     -- `role` == 3 is constant `Role::TEST`.
     role INTEGER NOT NULL CHECK (role > 0 AND role < 4),
     schema_version INTEGER NOT NULL DEFAULT 0 CHECK (schema_version >= 0 AND schema_version <= 99999),
-    signature TEXT UNIQUE NOT NULL DEFAULT gen_random_uuid()::text,
+    signature TEXT UNIQUE NOT NULL DEFAULT md5(random()::text),
     -- `status` == 1 is constant `Status::UNCONFIRMED`.
     -- `status` == 2 is constant `Status::ACTIVE`.
     -- `status` == 3 is constant `Status::INACTIVE`.
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS orgs (
 CREATE OR REPLACE FUNCTION update_org_metadata() RETURNS TRIGGER AS $$
 BEGIN
     NEW.mtime := extract(epoch from now())::bigint;
-    NEW.signature := gen_random_uuid()::text;
+    NEW.signature := md5(random()::text);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT NOT NULL CHECK (email != ''),
     email_digest TEXT NOT NULL CHECK (email_digest != ''),
     encryption_key_version TEXT NOT NULL CHECK (encryption_key_version != '00000000-0000-0000-0000-000000000000'),
-    id TEXT UNIQUE NOT NULL DEFAULT gen_random_uuid()::text,
+    id TEXT UNIQUE NOT NULL,
     insert_order BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     -- see FK constraint below
     org TEXT NOT NULL,
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS users (
     -- `role` == 3 is constant `Role::TEST`.
     role INTEGER NOT NULL CHECK (role > 0 AND role < 4),
     schema_version INTEGER NOT NULL DEFAULT 0 CHECK (schema_version >= 0 AND schema_version <= 99999),
-    signature TEXT UNIQUE NOT NULL DEFAULT gen_random_uuid()::text,
+    signature TEXT UNIQUE NOT NULL DEFAULT md5(random()::text),
     -- `status` == 1 is constant `Status::UNCONFIRMED`.
     -- `status` == 2 is constant `Status::ACTIVE`.
     -- `status` == 3 is constant `Status::INACTIVE`.
@@ -113,7 +113,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS user_ed25519_public_digest_org ON users (ed255
 CREATE OR REPLACE FUNCTION update_user_metadata() RETURNS TRIGGER AS $$
 BEGIN
     NEW.mtime := extract(epoch from now())::bigint;
-    NEW.signature := gen_random_uuid()::text;
+    NEW.signature := md5(random()::text);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
