@@ -79,8 +79,8 @@ EXECUTE FUNCTION org_audit_update_status();
 CREATE TABLE IF NOT EXISTS users (
     ed25519_public TEXT NOT NULL CHECK (ed25519_public != ''),
     ed25519_public_digest TEXT NOT NULL CHECK (ed25519_public_digest != ''),
-    display_name TEXT NOT NULL CHECK (display_name != ''),
-    display_name_digest TEXT NOT NULL CHECK (display_name_digest != ''),
+    name TEXT NOT NULL CHECK (name != ''),
+    name_digest TEXT NOT NULL CHECK (name_digest != ''),
     email TEXT NOT NULL CHECK (email != ''),
     email_digest TEXT NOT NULL CHECK (email_digest != ''),
     encryption_key_version TEXT NOT NULL CHECK (encryption_key_version != '00000000-0000-0000-0000-000000000000'),
@@ -136,19 +136,19 @@ FOR EACH ROW
 WHEN (OLD.ed25519_public_digest IS DISTINCT FROM NEW.ed25519_public_digest)
 EXECUTE FUNCTION user_audit_update_digest();
 
-CREATE OR REPLACE FUNCTION user_audit_update_display_name() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION user_audit_update_name() RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO audit_log (audit_table, audit_id, audit_column, old_mtime, new_mtime, old_signature, new_signature, details)
-    VALUES ('users', OLD.id, 'display_name_digest', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
-            jsonb_build_object('old', OLD.display_name_digest, 'new', NEW.display_name_digest)::text);
+    VALUES ('users', OLD.id, 'name_digest', OLD.mtime, NEW.mtime, OLD.signature, NEW.signature,
+            jsonb_build_object('old', OLD.name_digest, 'new', NEW.name_digest)::text);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER user_audit_update_display_name AFTER UPDATE OF display_name_digest ON users
+CREATE OR REPLACE TRIGGER user_audit_update_name AFTER UPDATE OF name_digest ON users
 FOR EACH ROW
-WHEN (OLD.display_name_digest IS DISTINCT FROM NEW.display_name_digest)
-EXECUTE FUNCTION user_audit_update_display_name();
+WHEN (OLD.name_digest IS DISTINCT FROM NEW.name_digest)
+EXECUTE FUNCTION user_audit_update_name();
 
 CREATE OR REPLACE FUNCTION user_audit_update_encryption_key_version() RETURNS TRIGGER AS $$
 BEGIN
