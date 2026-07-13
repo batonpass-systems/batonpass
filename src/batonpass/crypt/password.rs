@@ -1,12 +1,9 @@
-//! `HashedPassword` is an argon2 password hash, held as a fixed-size PHC
-//! string. See [`super::key::Key`] for the sibling type this mirrors.
+//! `HashedPassword` is an argon2 password hash, held as a PHC string.
 use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
-use arrayvec::ArrayString;
 use core::fmt;
-use core::fmt::Write as _;
 use core::str;
 use thiserror::Error;
 
@@ -19,15 +16,13 @@ use thiserror::Error;
 /// re-verified if the Argon2 params ever change.
 pub const PASSWORD_HASH_LEN: usize = 97;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct HashedPassword(ArrayString<PASSWORD_HASH_LEN>);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HashedPassword(String);
 
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
 pub enum PasswordError {
     #[error("password hash error: {0}")]
     PasswordHash(String),
-    #[error("password hash did not fit in the fixed-size {PASSWORD_HASH_LEN}-byte buffer")]
-    HashTooLong,
 }
 
 impl HashedPassword {
@@ -40,9 +35,7 @@ impl HashedPassword {
         let hash = argon2
             .hash_password(s.as_bytes(), &salt)
             .map_err(|cause| PasswordError::PasswordHash(format!("{cause:?}")))?;
-        let mut out = ArrayString::new();
-        write!(out, "{hash}").map_err(|_| PasswordError::HashTooLong)?;
-        Ok(Self(out))
+        Ok(Self(hash.to_string()))
     }
 
     /// `rand` produces the argon2 hash of a randomly generated password.
@@ -76,10 +69,9 @@ impl str::FromStr for HashedPassword {
     /// `from_str` builds a `HashedPassword` from a PHC string
     /// assumed to have been built by the `Display` impl.
     fn from_str(raw: &str) -> Result<Self, Self::Err> {
-        PasswordHash::new(raw).map_err(|cause| PasswordError::PasswordHash(format!("{cause:?}")))?;
-        let mut out = ArrayString::new();
-        write!(out, "{raw}").map_err(|_| PasswordError::HashTooLong)?;
-        Ok(Self(out))
+        PasswordHash::new(raw)
+            .map_err(|cause| PasswordError::PasswordHash(format!("{cause:?}")))?;
+        Ok(Self(raw.to_string()))
     }
 }
 
@@ -107,14 +99,24 @@ mod tests {
 
     #[test_log::test]
     fn hash_fixed_length_test() {
-        for pw in ["a", "a much much longer password than the other one", "my password"] {
-            assert_eq!(HashedPassword::hash(pw).unwrap().to_string().len(), PASSWORD_HASH_LEN);
+        for pw in [
+            "a",
+            "a much much longer password than the other one",
+            "my password",
+        ] {
+            assert_eq!(
+                HashedPassword::hash(pw).unwrap().to_string().len(),
+                PASSWORD_HASH_LEN
+            );
         }
     }
 
     #[test_log::test]
     fn round_trip_test() {
         let hashed = HashedPassword::hash("my password").unwrap();
-        assert_eq!(hashed, hashed.to_string().parse::<HashedPassword>().unwrap());
+        assert_eq!(
+            hashed,
+            hashed.to_string().parse::<HashedPassword>().unwrap()
+        );
     }
 }
