@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS users (
     name_digest TEXT NOT NULL CHECK (name_digest != ''),
     email TEXT NOT NULL CHECK (email != ''),
     email_digest TEXT NOT NULL CHECK (email_digest != ''),
-    encryption_key_version TEXT NOT NULL CHECK (encryption_key_version != '00000000-0000-0000-0000-000000000000'),
+    encryption_key_version TEXT NOT NULL CHECK (encryption_key_version != ''),
     id TEXT UNIQUE NOT NULL,
     insert_order BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     -- see FK constraint below
