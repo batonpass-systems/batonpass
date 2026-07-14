@@ -154,6 +154,7 @@ dependencies = [
  "aes-gcm",
  "argon2",
  "arrayvec",
+ "dotenvy",
  "hex",
  "rand 0.10.2",
  "sha2",

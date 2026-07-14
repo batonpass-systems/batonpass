@@ -1,13 +1,5 @@
 set shell := ["bash", "-c"]
-set dotenv-load := false
-
-# for testing purposes only
-
-export PGHOST := 'localhost'
-export PGDATABASE := 'batonpass'
-export PGUSERNAME := 'batonpass'
-export PGPASSWORD := 'batonpass'
-export POSTGRES_URL := 'postgres://batonpass:batonpass@localhost:5432/batonpass'
+set dotenv-filename := ".env"
 
 default:
     @just --list

@@ -27,6 +27,8 @@ pub enum Error {
 impl State {
     /// `unit` provides a State instance for unit testing and development.
     pub async fn unit() -> Result<State, Error> {
+        dotenvy::dotenv().ok();
+
         let pool_options = PgPoolOptions::new()
             .acquire_timeout(Duration::from_secs(1))
             .idle_timeout(Duration::from_secs(1))
