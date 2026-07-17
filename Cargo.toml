@@ -8,6 +8,7 @@ aes-gcm = "0.11"
 argon2 = "0.5"
 arrayvec = "0.7"
 dotenvy = "0.15"
+ed25519-dalek = { version = "3.0.0", features = ["rand_core"] }
 hex = "0.4"
 rand = "0.10"
 sha2 = "0.10"

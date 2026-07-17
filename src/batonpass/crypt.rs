@@ -10,12 +10,13 @@ pub mod cipher;
 pub mod key;
 pub mod nonce;
 pub mod password;
+pub mod sha256digest;
 pub mod version_key_map;
 
 pub use cipher::{AesError, decrypt, encrypt};
 pub use key::{KEY_LENGTH, Key, KeyDecodeError};
-pub use password::{HashedPassword, PASSWORD_HASH_LEN, PasswordError};
 pub use nonce::{NONCE_LENGTH, Nonce};
+pub use password::{HashedPassword, PASSWORD_HASH_LEN, PasswordError};
 pub use version_key_map::VersionKeyMap;
 
 /// `rand_hex` produces a new random hex `String` (len: 64).
