@@ -6,6 +6,8 @@ use crate::batonpass::model::role::Role;
 use crate::batonpass::model::status::Status;
 use uuid::Uuid;
 
+/// `Signature` is a unique stamp from the database, used
+/// to identify a unique
 pub type Signature = [u8; 32];
 
 /// `Meta` is a set of fields common to all models.
@@ -29,7 +31,7 @@ pub trait HasMeta {
     fn meta_mut(&mut self) -> &mut Meta;
 }
 
-/// `InsertReturning` is what model insert statements will request back in `returning`.
+/// `InsertReturning` is what model insert statements will request in `returning`.
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
 pub struct InsertReturning {

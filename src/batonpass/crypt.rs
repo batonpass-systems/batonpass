@@ -19,6 +19,11 @@ pub use nonce::{NONCE_LENGTH, Nonce};
 pub use password::{HashedPassword, PASSWORD_HASH_LEN, PasswordError};
 pub use version_key_map::VersionKeyMap;
 
+/// `rand_string` produces a new short random hex `String` (len: 12).
+pub fn rand_string() -> String {
+    hex::encode(rand::rng().random::<[u8; 6]>().as_slice())
+}
+
 /// `rand_hex` produces a new random hex `String` (len: 64).
 pub fn rand_hex() -> String {
     hex::encode(rand::rng().random::<[u8; KEY_LENGTH]>().as_slice())
