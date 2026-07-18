@@ -28,6 +28,7 @@ pub struct User {
 }
 
 impl User {
+    /// `new` constructs a `User` given a set of parameters.
     #[allow(dead_code)]
     pub fn new(
         ed25519_public: VerifyingKey,
@@ -52,6 +53,7 @@ impl User {
         }
     }
 
+    /// `test` constructs a `User` suitable for testing.
     #[allow(dead_code)]
     pub fn test() -> (Self, SigningKey) {
         let mut csprng = UnwrapErr(SysRng);
