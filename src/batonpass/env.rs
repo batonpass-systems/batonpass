@@ -4,9 +4,8 @@
 use std::fmt;
 
 /// `Level` describes the run level.
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub enum Level {
-    /// `Unit` is the unit testing environment.
     #[default]
     Test,
 }

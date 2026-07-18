@@ -5,6 +5,10 @@ use uuid::Uuid;
 use super::key::Key;
 use crate::batonpass::env;
 
+/// `VersionKeyMap` tracks encryptions keys by version,
+/// where the version if a v7 uuid. `current_version`
+/// is the uuid identifying the key that is the current
+/// default for encrypting/decrypting.
 #[derive(Clone, Debug)]
 pub struct VersionKeyMap {
     pub keymap: HashMap<Uuid, Key>,

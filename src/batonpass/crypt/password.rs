@@ -16,10 +16,11 @@ use thiserror::Error;
 /// re-verified if the Argon2 params ever change.
 pub const PASSWORD_HASH_LEN: usize = 97;
 
+/// `HashedPassword` is the argon2 output of a plaintext password.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HashedPassword(String);
 
-#[derive(Clone, Debug, Error, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum PasswordError {
     #[error("password hash error: {0}")]
     PasswordHash(String),
