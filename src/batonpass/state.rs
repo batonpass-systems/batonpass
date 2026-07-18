@@ -27,7 +27,7 @@ pub enum Error {
 }
 
 impl State {
-    pub async fn new(level: bp_env::Level) -> Result<State, Error> {
+    pub async fn new(level: bp_env::Level) -> Result<Self, Error> {
         match level {
             bp_env::Level::Test => Self::test().await,
             // for when we add other environment levels...
@@ -36,7 +36,7 @@ impl State {
     }
 
     /// `test` provides a State instance for unit testing and development.
-    pub async fn test() -> Result<State, Error> {
+    pub async fn test() -> Result<Self, Error> {
         dotenvy::dotenv().ok();
 
         let pool_options = PgPoolOptions::new()
@@ -53,7 +53,7 @@ impl State {
 
     /// `for_sqlx_test` is to be used with the `sqlx::PgPool`
     /// as set up with the #[`sqlx::test`] test header.
-    pub fn for_sqlx_test(pool: PgPool) -> State {
+    pub fn for_sqlx_test(pool: PgPool) -> Self {
         // Get a pool to the postgres master.
         let master = pool;
 
