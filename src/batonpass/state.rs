@@ -9,6 +9,8 @@ use std::env;
 use std::time::Duration;
 use thiserror::Error;
 
+use crate::batonpass::env as bp_env;
+
 /// `State` manages all app state references.
 pub struct State {
     #[allow(unused)]
@@ -25,8 +27,16 @@ pub enum Error {
 }
 
 impl State {
-    /// `unit` provides a State instance for unit testing and development.
-    pub async fn unit() -> Result<State, Error> {
+    pub async fn new(level: bp_env::Level) -> Result<State, Error> {
+        match level {
+            bp_env::Level::Test => Self::test().await,
+            // for when we add other environment levels...
+            // _ => panic!("no State constructor"),
+        }
+    }
+
+    /// `test` provides a State instance for unit testing and development.
+    pub async fn test() -> Result<State, Error> {
         dotenvy::dotenv().ok();
 
         let pool_options = PgPoolOptions::new()

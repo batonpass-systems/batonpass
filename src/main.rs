@@ -1,5 +1,6 @@
 mod batonpass;
 
+use crate::batonpass::env as bp_env;
 use batonpass::state::State;
 use tracing::info;
 
@@ -14,7 +15,7 @@ async fn main() -> Result<(), batonpass::state::Error> {
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
-    let state = State::unit().await?;
+    let state = State::new(bp_env::Level::Test).await?;
     let _row = sqlx::query_as!(Ping, r#"select 1 as "one!""#)
         .fetch_one(state.random_replica())
         .await
