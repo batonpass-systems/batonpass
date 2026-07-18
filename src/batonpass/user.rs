@@ -72,7 +72,9 @@ impl NewUser {
 
     // fn insert(&self) -> User {
     //   actually does the insert, binds the returning columns
-    //   to meta::InsertReturning
+    //   to meta::InsertReturning, which will have to be converted
+    //   from db implementations and merged with fields from NewUser
+    //   to create a User
     // }
 }
 
@@ -153,3 +155,6 @@ impl HasMeta for User {
         &mut self.meta
     }
 }
+
+// TODO: a From<UserRow> for User impl, that tries to convert
+// all the columns to internal types, and encompass all the errors
