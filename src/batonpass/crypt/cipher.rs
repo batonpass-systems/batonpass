@@ -34,7 +34,6 @@ pub enum AesError {
 /// let d = decrypt(&key, &c).unwrap();
 /// assert_eq!(&m, &d);
 /// ```
-#[tracing::instrument]
 pub fn encrypt(key: &Key, m: &str) -> Result<String, AesError> {
     let cipher = Aes256Gcm::new(&key.as_aes_key());
     let nonce = Nonce::rand();
@@ -45,7 +44,6 @@ pub fn encrypt(key: &Key, m: &str) -> Result<String, AesError> {
 }
 
 /// `decrypt` produces the cleartext of ciphertext `c` using `key`.
-#[tracing::instrument]
 pub fn decrypt(key: &Key, c: &str) -> Result<String, AesError> {
     let decoded = match hex::decode(c) {
         Ok(v) => v,

@@ -27,7 +27,6 @@ pub enum PasswordError {
 
 impl HashedPassword {
     /// `hash` produces the argon2 password hash of `s`.
-    #[tracing::instrument]
     pub fn hash(s: &str) -> Result<Self, PasswordError> {
         debug_assert!(!s.is_empty());
         let salt = SaltString::generate(&mut OsRng);
@@ -44,7 +43,6 @@ impl HashedPassword {
     }
 
     /// `verify` determines if `s` is the password matching this hash.
-    #[tracing::instrument]
     pub fn verify(&self, s: &str) -> Result<bool, PasswordError> {
         match PasswordHash::new(&self.0) {
             Ok(v) => match Argon2::default().verify_password(s.as_bytes(), &v) {
