@@ -157,6 +157,7 @@ impl HasMeta for User {
     fn meta(&self) -> &Meta {
         &self.meta
     }
+
     fn meta_mut(&mut self) -> &mut Meta {
         &mut self.meta
     }
