@@ -5,18 +5,17 @@
 use ed25519_dalek::{SigningKey, VerifyingKey};
 use rand::rand_core::UnwrapErr;
 use rand::rngs::SysRng;
-#[allow(unused_imports)]
 use std::convert::TryFrom;
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::batonpass::crypt::ed25519::Ed25519PublicDecodeError;
+use crate::batonpass::crypt::ed25519::{Ed25519PublicDecodeError, decode_ed25519_public};
 use crate::batonpass::crypt::password::{HashedPassword, PasswordError};
 use crate::batonpass::crypt::rand_string;
 use crate::batonpass::crypt::sha256digest::{Sha256Digest, Sha256DigestDecodeError};
 use crate::batonpass::model::meta::{HasMeta, Meta, SignatureDecodeError};
-use crate::batonpass::model::role::RoleError;
-use crate::batonpass::model::status::StatusError;
+use crate::batonpass::model::role::{Role, RoleError};
+use crate::batonpass::model::status::{Status, StatusError};
 
 /// `NewUser` has a name, email, password, org and ed25519 public key.
 /// This is a user that has not yet been inserted.
@@ -187,4 +186,29 @@ pub enum UserRowError {
     Status(#[from] StatusError),
 }
 
-// impl TryFrom<UserRow> for User {}
+impl TryFrom<UserRow> for User {
+    type Error = UserRowError;
+
+    fn try_from(row: UserRow) -> Result<Self, Self::Error> {
+        Ok(Self {
+            ed25519_public: decode_ed25519_public(row.ed25519_public.as_str())?,
+            ed25519_public_digest: row.ed25519_public_digest.parse()?,
+            email: row.email,
+            email_digest: row.email_digest.parse()?,
+            name: row.name,
+            name_digest: row.name_digest.parse()?,
+            org: row.org,
+            password: row.password.parse()?,
+            meta: Meta {
+                ctime: row.ctime,
+                id: row.id,
+                insert_order: row.insert_order,
+                mtime: row.mtime,
+                role: Role::try_from(row.role)?,
+                schema_version: row.schema_version,
+                signature: row.signature.parse()?,
+                status: Status::try_from(row.status)?,
+            },
+        })
+    }
+}
