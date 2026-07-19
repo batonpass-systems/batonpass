@@ -13,11 +13,11 @@ CREATE TABLE IF NOT EXISTS audit_log (
 );
 
 CREATE TABLE IF NOT EXISTS orgs (
-    id TEXT UNIQUE NOT NULL,
+    id UUID UNIQUE NOT NULL,
     insert_order BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT UNIQUE NOT NULL CHECK (name != ''),
     -- see FK constraint in ALTER at end
-    owner TEXT NOT NULL,
+    owner UUID NOT NULL,
 
     -- common model metadata
     ctime BIGINT NOT NULL DEFAULT extract(epoch from now())::bigint,
@@ -25,13 +25,13 @@ CREATE TABLE IF NOT EXISTS orgs (
     -- `role` == 1 is constant `Role::NORMAL`.
     -- `role` == 2 is constant `Role::ADMIN`.
     -- `role` == 3 is constant `Role::TEST`.
-    role INTEGER NOT NULL CHECK (role > 0 AND role < 4),
-    schema_version INTEGER NOT NULL DEFAULT 0 CHECK (schema_version >= 0 AND schema_version <= 99999),
+    role BIGINT NOT NULL CHECK (role > 0 AND role < 4),
+    schema_version BIGINT NOT NULL DEFAULT 0 CHECK (schema_version >= 0 AND schema_version <= 99999),
     signature TEXT UNIQUE NOT NULL DEFAULT md5(random()::text),
     -- `status` == 1 is constant `Status::UNCONFIRMED`.
     -- `status` == 2 is constant `Status::ACTIVE`.
     -- `status` == 3 is constant `Status::INACTIVE`.
-    status INTEGER NOT NULL CHECK (status > 0 AND status < 4)
+    status BIGINT NOT NULL CHECK (status > 0 AND status < 4)
     -- FOREIGN KEY (owner) REFERENCES users(id) added below via ALTER TABLE,
     -- since users references orgs and must be created after orgs.
 );
@@ -84,10 +84,10 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT NOT NULL CHECK (email != ''),
     email_digest TEXT NOT NULL CHECK (email_digest != ''),
     encryption_key_version TEXT NOT NULL CHECK (encryption_key_version != ''),
-    id TEXT UNIQUE NOT NULL,
+    id UUID UNIQUE NOT NULL,
     insert_order BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     -- see FK constraint below
-    org TEXT NOT NULL,
+    org UUID NOT NULL,
     password TEXT NOT NULL CHECK (password LIKE '$argon2%'),
 
     -- common model metadata
@@ -96,13 +96,13 @@ CREATE TABLE IF NOT EXISTS users (
     -- `role` == 1 is constant `Role::NORMAL`.
     -- `role` == 2 is constant `Role::ADMIN`.
     -- `role` == 3 is constant `Role::TEST`.
-    role INTEGER NOT NULL CHECK (role > 0 AND role < 4),
-    schema_version INTEGER NOT NULL DEFAULT 0 CHECK (schema_version >= 0 AND schema_version <= 99999),
+    role BIGINT NOT NULL CHECK (role > 0 AND role < 4),
+    schema_version BIGINT NOT NULL DEFAULT 0 CHECK (schema_version >= 0 AND schema_version <= 99999),
     signature TEXT UNIQUE NOT NULL DEFAULT md5(random()::text),
     -- `status` == 1 is constant `Status::UNCONFIRMED`.
     -- `status` == 2 is constant `Status::ACTIVE`.
     -- `status` == 3 is constant `Status::INACTIVE`.
-    status INTEGER NOT NULL CHECK (status > 0 AND status < 4),
+    status BIGINT NOT NULL CHECK (status > 0 AND status < 4),
     FOREIGN KEY (org) REFERENCES orgs(id)
       ON DELETE CASCADE
       DEFERRABLE INITIALLY DEFERRED

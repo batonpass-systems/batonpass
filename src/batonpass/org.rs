@@ -2,6 +2,7 @@
 //!
 //! `org` is a collection of users in batonpass.
 
+use sqlx::PgPool;
 use std::convert::TryFrom;
 use thiserror::Error;
 use uuid::Uuid;
@@ -58,6 +59,36 @@ pub struct Org {
     meta: Meta,
 }
 
+impl Org {
+    /// `read` reads the `Org` identified by `id` from the database.
+    #[allow(dead_code)]
+    pub async fn read(pool: &PgPool, id: Uuid) -> Result<Self, OrgReadError> {
+        let row = sqlx::query_as!(
+            OrgRow,
+            r#"
+            SELECT
+                ctime,
+                id,
+                insert_order,
+                mtime,
+                name,
+                owner,
+                role,
+                schema_version,
+                signature,
+                status
+            FROM orgs
+            WHERE id = $1
+            "#,
+            id
+        )
+        .fetch_one(pool)
+        .await?;
+
+        Ok(Self::try_from(row)?)
+    }
+}
+
 impl HasMeta for Org {
     fn meta(&self) -> &Meta {
         &self.meta
@@ -79,6 +110,16 @@ pub enum OrgRowError {
 
     #[error(transparent)]
     Status(#[from] StatusError),
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Error)]
+pub enum OrgReadError {
+    #[error(transparent)]
+    Row(#[from] OrgRowError),
+
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
 }
 
 impl TryFrom<OrgRow> for Org {

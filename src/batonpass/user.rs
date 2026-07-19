@@ -5,6 +5,7 @@
 use ed25519_dalek::{SigningKey, VerifyingKey};
 use rand::rand_core::UnwrapErr;
 use rand::rngs::SysRng;
+use sqlx::PgPool;
 use std::convert::TryFrom;
 use thiserror::Error;
 use uuid::Uuid;
@@ -123,33 +124,38 @@ pub struct User {
 }
 
 impl User {
-    /// `new` constructs a `User` from a `NewUser` (whose fields may come
-    /// from a fresh `NewUser::new` or be read back from the database) and
-    /// its `Meta`. The digest fields are never recomputed here; they pass
-    /// through unchanged from `new_user`.
+    /// `read` reads the `User` identified by `id` from the database.
     #[allow(dead_code)]
-    pub fn new(new_user: NewUser, meta: Meta) -> Self {
-        let NewUser {
-            ed25519_public,
-            ed25519_public_digest,
-            email,
-            email_digest,
-            name,
-            name_digest,
-            org,
-            password,
-        } = new_user;
-        Self {
-            ed25519_public,
-            ed25519_public_digest,
-            email,
-            email_digest,
-            name,
-            name_digest,
-            org,
-            password,
-            meta,
-        }
+    pub async fn read(pool: &PgPool, id: Uuid) -> Result<Self, UserReadError> {
+        let row = sqlx::query_as!(
+            UserRow,
+            r#"
+            SELECT
+                ctime,
+                ed25519_public,
+                ed25519_public_digest,
+                email,
+                email_digest,
+                id,
+                insert_order,
+                mtime,
+                name,
+                name_digest,
+                org,
+                password,
+                role,
+                schema_version,
+                signature,
+                status
+            FROM users
+            WHERE id = $1
+            "#,
+            id
+        )
+        .fetch_one(pool)
+        .await?;
+
+        Ok(Self::try_from(row)?)
     }
 }
 
@@ -183,6 +189,16 @@ pub enum UserRowError {
 
     #[error(transparent)]
     Status(#[from] StatusError),
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Error)]
+pub enum UserReadError {
+    #[error(transparent)]
+    Row(#[from] UserRowError),
+
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
 }
 
 impl TryFrom<UserRow> for User {
