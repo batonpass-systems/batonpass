@@ -163,9 +163,6 @@ impl HasMeta for User {
     }
 }
 
-// TODO: a From<UserRow> for User impl, that tries to convert
-// all the columns to internal types, and encompass all the errors
-
 #[allow(dead_code)]
 #[derive(Debug, Error)]
 pub enum UserRowError {
