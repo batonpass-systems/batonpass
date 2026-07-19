@@ -12,11 +12,13 @@ pub mod key;
 pub mod nonce;
 pub mod password;
 pub mod sha256digest;
+pub mod signature;
 pub mod version_key_map;
 
 pub use cipher::{AesError, decrypt, encrypt};
 pub use ed25519::{Ed25519PublicDecodeError, decode_ed25519_public};
 pub use key::{KEY_LENGTH, Key, KeyDecodeError};
+pub use signature::{SIGNATURE_LENGTH, Signature, SignatureDecodeError};
 pub use nonce::{NONCE_LENGTH, Nonce};
 pub use password::{HashedPassword, PASSWORD_HASH_LEN, PasswordError};
 pub use version_key_map::VersionKeyMap;

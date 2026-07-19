@@ -13,7 +13,8 @@ use crate::batonpass::crypt::ed25519::{Ed25519PublicDecodeError, decode_ed25519_
 use crate::batonpass::crypt::password::{HashedPassword, PasswordError};
 use crate::batonpass::crypt::rand_string;
 use crate::batonpass::crypt::sha256digest::{Sha256Digest, Sha256DigestDecodeError};
-use crate::batonpass::model::meta::{HasMeta, Meta, SignatureDecodeError};
+use crate::batonpass::crypt::signature::SignatureDecodeError;
+use crate::batonpass::model::meta::{HasMeta, Meta};
 use crate::batonpass::model::role::{Role, RoleError};
 use crate::batonpass::model::status::{Status, StatusError};
 
